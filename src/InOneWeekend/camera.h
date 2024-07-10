@@ -5,6 +5,9 @@
 
 #include "hittable.h"
 #include "material.h"
+#include "write_to_file.h"
+
+#include <chrono>
 
 class camera {
   public:
@@ -24,21 +27,37 @@ class camera {
     void render(const hittable& world) {
         initialize();
 
-        std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        double* outImage = new double[image_height * image_width * 3];
 
         for (int j = 0; j < image_height; j++) {
-            std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+            //std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
             for (int i = 0; i < image_width; i++) {
                 color pixel_color(0,0,0);
                 for (int sample = 0; sample < samples_per_pixel; sample++) {
                     ray r = get_ray(i, j);
                     pixel_color += ray_color(r, max_depth, world);
                 }
-                write_color(std::cout, pixel_samples_scale * pixel_color);
+                outImage[(3*((j * image_width) + i))] = pixel_samples_scale * pixel_color.x();
+                outImage[(3*((j * image_width) + i)) + 1] = pixel_samples_scale * pixel_color.y();
+                outImage[(3*((j * image_width) + i)) + 2] = pixel_samples_scale * pixel_color.z();
+                //write_color(std::cout, pixel_samples_scale * pixel_color);
             }
         }
 
-        std::clog << "\rDone.                 \n";
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        std::clog << "\rTime taken by function: " << (double)duration.count()/1000000.0 << " seconds" << std::endl;
+
+        write_to_file(outImage, image_width, image_height, false);
+        auto stopWithWrite = std::chrono::high_resolution_clock::now();
+        auto durationWithWrite = std::chrono::duration_cast<std::chrono::microseconds>(stopWithWrite - start);
+        std::clog << "\rTime taken by function with write: " << (double)durationWithWrite.count() / 1000000.0 << " seconds" << std::endl;
+
+        delete[] outImage;
+        //std::clog << "\rDone.                 \n";
     }
 
   private:
