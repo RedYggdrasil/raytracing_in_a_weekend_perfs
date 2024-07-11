@@ -31,6 +31,8 @@ set ( SOURCE_ONE_WEEKEND
   src/InOneWeekend/rtweekend.h
   src/InOneWeekend/sphere.h
   src/InOneWeekend/vec3.h
+  src/InOneWeekend/test_perf_scene.h
+  src/InOneWeekend/write_to_file.h
 )
 
 set ( SOURCE_NEXT_WEEK
